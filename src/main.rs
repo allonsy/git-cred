@@ -17,5 +17,5 @@ fn main() {
 
     let repo = repo_res.unwrap();
 
-    println!("{}", gpg::has_key("linuxbash8"));
+    println!("{:?}", gpg::decrypt("Cargo.toml.gpg").unwrap());
 }
