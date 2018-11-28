@@ -32,30 +32,22 @@ pub fn get_credentials_dir(repo: &Repository) -> PathBuf {
     if !location.exists() {
         println!("Creating new credential store at: {}", location.display());
         fs::create_dir(location.clone()).unwrap();
+        create_default_gpg_id(repo, &location);
     }
     return location;
 }
 
-pub fn get_gpg_ids_for_file(repo: &Repository, path: &str) -> Vec<String> {
-    let mut cred_path = get_credentials_dir(repo);
-    cred_path = cred_path.join(path);
-    Vec::new()
+fn create_default_gpg_id(repo: &Repository, path: &Path) {
+    let default_email = git_config::get_email(repo);
+    let string_to_write = if default_email.is_some() {
+        let mut default_email_res = default_email.unwrap();
+        println!("Using default gpg id: {}", default_email_res);
+        default_email_res += "\n";
+        default_email_res
+    } else {
+        String::new()
+    };
 
-}
-
-fn is_parent_or_equal(path1: &Path, path2: &Path) -> bool {
-    let p1parts: Vec<std::path::Components> = path1.components().collect();
-    let p2parts: Vec<std::path::Components> = path2.components().collect();
-
-    if p2parts.len() < p1parts.len() {
-        return false;
-    }
-
-    for i in 0..p1parts.len() {
-        if p1parts[i] != p2parts[i] {
-            return false;
-        }
-    }
-    
-    return true;
+    let gpg_path = path.to_path_buf().join(".gpg_id");
+    fs::write(gpg_path, string_to_write).unwrap();
 }

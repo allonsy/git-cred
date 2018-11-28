@@ -12,3 +12,12 @@ pub fn get_credentials_location(repo: &Repository) -> Option<PathBuf> {
     }
     return Some(possible_location.unwrap());
 }
+
+pub fn get_email(repo: &Repository) -> Option<String> {
+    let config = repo.config().unwrap();
+    let possible_email = config.get_string("user.email");
+    if possible_email.is_err() {
+        return None;
+    }
+    return Some(possible_email.unwrap());
+}
