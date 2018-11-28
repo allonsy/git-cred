@@ -32,7 +32,7 @@ fn main() {
 
     match command.as_str() {
         "init" => {
-            git_utils::get_credentials_dir(&repo);
+            handle_init(&repo, command_args);
         }
         "encrypt" => {
             let path = Path::new(&command_args[0]);
@@ -46,6 +46,24 @@ fn main() {
             error_out(&format!("Command not recognized: {}", command));
         }
     };
+}
+
+fn handle_init(repo: &Repository, args: &[String]) {
+    if args.len() == 0 {
+        git_utils::get_credentials_dir(&repo);
+        return;
+    }
+
+    if args[0] == "-f" {
+        if args.len() <= 1 {
+            error_out("Please provide folder to init '-f' flag");
+        }
+        let subfolder = &args[1];
+        git_utils::create_sub_dir(repo, &Path::new(subfolder), args[2..].to_vec());
+        return;
+    }
+
+    git_utils::create_sub_dir(repo, Path::new(""), args[0..].to_vec());
 }
 
 fn error_out(message: &str) -> ! {

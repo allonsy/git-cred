@@ -51,3 +51,20 @@ fn create_default_gpg_id(repo: &Repository, path: &Path) {
     let gpg_path = path.to_path_buf().join(".gpg_id");
     fs::write(gpg_path, string_to_write).unwrap();
 }
+
+pub fn create_sub_dir(repo: &Repository, path: &Path, recipients: Vec<String>) {
+    let actual_path = get_credentials_dir_path(repo).join(path);
+    fs::create_dir_all(actual_path.clone()).unwrap();
+
+    let mut string_to_write = String::new();
+    if recipients.is_empty() {
+        string_to_write = git_config::get_email(repo).unwrap_or(String::new());
+        string_to_write += "\n";
+    } else {
+        for recipient in recipients {
+            string_to_write = string_to_write + &recipient + "\n";
+        }
+    }
+    let gpg_path = actual_path.join(".gpg_id");
+    fs::write(gpg_path, string_to_write).unwrap();
+}
