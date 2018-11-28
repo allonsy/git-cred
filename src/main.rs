@@ -7,6 +7,8 @@ mod command;
 mod gpg;
 
 use git2::Repository;
+use std::path::Path;
+
 
 fn main() {
     let repo_res = Repository::discover(".");
@@ -17,5 +19,5 @@ fn main() {
 
     let repo = repo_res.unwrap();
 
-    println!("{:?}", gpg::decrypt("Cargo.toml.gpg").unwrap());
+    println!("{:?}", Path::new("/hello") < Path::new("/hellaa"));
 }

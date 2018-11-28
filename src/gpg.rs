@@ -73,3 +73,10 @@ pub fn has_key(id: &str) -> bool {
     let output = command::run_command("gpg", vec!["--list-keys", id]).unwrap();
     return output.status.success();
 }
+
+pub fn get_key_id(id: &str) -> String {
+    let output = command::run_command("gpg", vec!["--keyid-format", "LONG", "-k", id]).unwrap();
+    let mut output_string: String = String::from_utf8(output.stdout).unwrap();
+
+    output_string.lines().nth(1).unwrap().trim().to_string()
+}
