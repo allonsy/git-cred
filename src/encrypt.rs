@@ -1,7 +1,6 @@
 use git_utils;
 use gpg;
 use git2::Repository;
-use std::path::PathBuf;
 use std::path::Path;
 use std::fs::File;
 use std::fs;

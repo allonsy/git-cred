@@ -35,8 +35,7 @@ fn main() {
             handle_init(&repo, command_args);
         }
         "encrypt" => {
-            let path = Path::new(&command_args[0]);
-            encrypt::encrypt_string(&repo, &path, command_args[1].to_string());
+            handle_encrypt(&repo, command_args);
         }
         "reencrypt" => {
             handle_reencrypt(&repo, command_args);
@@ -74,6 +73,28 @@ fn handle_init(repo: &Repository, args: &[String]) {
 
 fn handle_reencrypt(repo: &Repository, _: &[String]) {
     encrypt::reencrypt_folder(repo, &git_utils::get_credentials_dir(repo));
+}
+
+fn handle_encrypt(repo: &Repository, args: &[String]) {
+    if args.len() == 0 {
+        error_out("Please provide path to the desired encrypted file");
+    }
+
+    let path = Path::new(&args[0]);
+
+    if args.len() <= 1 {
+        error_out("Please provide either a string or file to encrypt");
+    }
+
+    if args[1] == "-f".to_string() {
+        if args.len() <= 2 {
+            error_out("'-f' flag requires a file name");
+        }
+        let file_name = &args[2];
+        encrypt::encrypt_file(&repo, path, &file_name);
+    } else {
+        encrypt::encrypt_string(&repo, path, args[1].clone());
+    }
 }
 
 fn error_out(message: &str) -> ! {
