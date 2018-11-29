@@ -5,7 +5,6 @@ use std::path::Path;
 use std::fs::File;
 use std::fs;
 use std::io::prelude::Read;
-use std::path;
 
 pub fn encrypt_file(repo: &Repository, path: &Path, fname: &str) {
     let mut contents = String::new();
