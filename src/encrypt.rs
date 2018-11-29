@@ -45,6 +45,22 @@ pub fn reencrypt_file(repo: &Repository, path: &Path) {
     gpg::reencrypt(&path_to_encrypted_file, &gpg_pointers).unwrap();
 }
 
+pub fn reencrypt_folder(repo: &Repository, path: &Path) {
+    for file in fs::read_dir(path).unwrap() {
+        let file_res = file.unwrap();
+        let file_name = file_res.file_name().into_string().unwrap();
+        if !file_name.starts_with(".") {
+            if file_res.file_type().unwrap().is_dir() {
+                reencrypt_folder(repo, &file_res.path());
+            } else {
+                let total_path = file_res.path();
+                let relative_path = total_path.strip_prefix(git_utils::get_credentials_dir(repo)).unwrap();
+                reencrypt_file(repo, &relative_path);
+            }
+        }
+    }
+}
+
 /* Creates directories as needed */
 fn get_gpgs_for_file(repo: &Repository, sub_path: &Path) -> Vec<String> {
     let cred_path = git_utils::get_credentials_dir(repo);
@@ -95,4 +111,4 @@ fn read_gpg_id_file(p: &Path) -> Option<Vec<String>> {
         gpg_ids.push(gpg.to_string());
     }
     return Some(gpg_ids);
-} 
+}

@@ -38,6 +38,9 @@ fn main() {
             let path = Path::new(&command_args[0]);
             encrypt::encrypt_string(&repo, &path, command_args[1].to_string());
         }
+        "reencrypt" => {
+            handle_reencrypt(&repo, command_args);
+        }
         "decrypt" => {
             let path = Path::new(&command_args[0]);
             println!("{}", decrypt::decrypt(&repo, path));
@@ -60,10 +63,17 @@ fn handle_init(repo: &Repository, args: &[String]) {
         }
         let subfolder = &args[1];
         git_utils::create_sub_dir(repo, &Path::new(subfolder), args[2..].to_vec());
+        let path_to_subfolder = git_utils::get_credentials_dir(repo).join(subfolder);
+        encrypt::reencrypt_folder(repo, &path_to_subfolder);
         return;
     }
 
     git_utils::create_sub_dir(repo, Path::new(""), args[0..].to_vec());
+    encrypt::reencrypt_folder(repo, &git_utils::get_credentials_dir(repo));
+}
+
+fn handle_reencrypt(repo: &Repository, _: &[String]) {
+    encrypt::reencrypt_folder(repo, &git_utils::get_credentials_dir(repo));
 }
 
 fn error_out(message: &str) -> ! {
