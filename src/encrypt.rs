@@ -67,7 +67,8 @@ fn get_gpgs_for_file(repo: &Repository, sub_path: &Path) -> Vec<String> {
         panic!("No .gpg_id file in credential store");
     }
     let sub_paths = sub_path.to_str().unwrap().split(std::path::MAIN_SEPARATOR).collect();
-    get_gpgs_for_file_recursive(&cred_path, sub_paths, gpgs.unwrap())
+    let gpgs = get_gpgs_for_file_recursive(&cred_path, sub_paths, gpgs.unwrap());
+    gpgs
 }
 
 fn get_gpgs_for_file_recursive(path: &Path, sub_path: Vec<&str>, gpgs: Vec<String>) -> Vec<String> {

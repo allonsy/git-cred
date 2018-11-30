@@ -7,9 +7,12 @@ mod command;
 mod gpg;
 mod encrypt;
 mod decrypt;
+mod resolver;
+mod util;
 
 use git2::Repository;
 use std::path::Path;
+use util::error_out;
 
 
 fn main() {
@@ -95,9 +98,4 @@ fn handle_encrypt(repo: &Repository, args: &[String]) {
     } else {
         encrypt::encrypt_string(&repo, path, args[1].clone());
     }
-}
-
-fn error_out(message: &str) -> ! {
-    eprintln!("{}", message);
-    std::process::exit(2)
 }
