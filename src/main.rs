@@ -47,6 +47,9 @@ fn main() {
             let path = Path::new(&command_args[0]);
             println!("{}", decrypt::decrypt(&repo, path));
         }
+        "save-key" => {
+            handle_set_user_key(&repo, command_args);
+        }
         _ => {
             error_out(&format!("Command not recognized: {}", command));
         }
@@ -98,4 +101,32 @@ fn handle_encrypt(repo: &Repository, args: &[String]) {
     } else {
         encrypt::encrypt_string(&repo, path, args[1].clone());
     }
+}
+
+fn handle_set_user_key(repo: &Repository, args: &[String]) {
+    if args.len() == 0 {
+        error_out("Please provide a username/email/keyid to save-key");
+    }
+
+    let uid = &args[0];
+
+    if args.len() == 1 {
+        if gpg::has_key(&uid) {
+            let pub_key = gpg::export_key(uid);
+            resolver::set_key(repo, uid, &pub_key.unwrap());
+            return;
+        } else {
+            error_out(&format!("Unable to find key for user: {}", uid));
+        }
+    }
+
+    let filename = &args[1];
+    let file_contents = std::fs::read_to_string(filename);
+    if file_contents.is_err() {
+        error_out(&format!("Unable to read public key from file: {}", filename));
+    }
+
+    let pub_key = file_contents.unwrap();
+
+    resolver::set_key(repo, uid, &pub_key);
 }

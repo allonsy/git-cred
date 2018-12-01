@@ -3,7 +3,9 @@ use std::process::Command;
 use std::process::Stdio;
 use std::io;
 use std::io::Write;
+use std::io::Read;
 use command;
+use util;
 
 pub fn decrypt<P: AsRef<Path>>(path: P) -> io::Result<String> {
     let output = command::run_command("gpg", vec!["--decrypt", path.as_ref().to_str().unwrap()]);
@@ -76,7 +78,45 @@ pub fn has_key(id: &str) -> bool {
 
 pub fn get_key_id(id: &str) -> String {
     let output = command::run_command("gpg", vec!["--keyid-format", "LONG", "-k", id]).unwrap();
-    let mut output_string: String = String::from_utf8(output.stdout).unwrap();
+    let output_string: String = String::from_utf8(output.stdout).unwrap();
 
     output_string.lines().nth(1).unwrap().trim().to_string()
+}
+
+// returns the key-id of the imported key
+pub fn import_key(key_contents: &str) -> String {
+    let mut output = Command::new("gpg")
+        .args(vec!["--import"])
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
+        .spawn()
+        .expect("Unable to call gpg");
+    
+    output.stdin.as_mut().unwrap().write_all(&key_contents.to_string().into_bytes()).unwrap();
+    
+
+    let exit_cond = output.wait_with_output().unwrap();
+    if !exit_cond.status.success() {
+        util::error_out("Unable to import key!");
+    }
+
+    let output_str = String::from_utf8(exit_cond.stderr).unwrap();
+
+    let output_lines: Vec<&str> = output_str.lines().collect();
+    let first_line = output_lines[0];
+    let words: Vec<&str> = first_line.split(" ").collect();
+    let mut short_id = words[2].to_string();
+    let short_id_len = short_id.len();
+    short_id.remove(short_id_len - 1);
+    return get_key_id(&short_id);
+}
+
+pub fn export_key(uid: &str) -> Option<String> {
+    let output = command::run_command("gpg", vec!["--export",  "--armor", uid]);
+    if output.is_err() {
+        return None;
+    }
+
+    return Some(String::from_utf8(output.unwrap().stdout).unwrap());
 }

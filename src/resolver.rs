@@ -7,13 +7,15 @@ use util::error_out;
 
 const KEY_FOLDER_NAME: &'static str = ".keys";
 const LOCK_FOLDER_NAME: &'static str = "locks";
+const PUBLIC_KEY_FOLDER_NAME: &'static str = "keys";
 
 pub fn resolve_name(repo: &Repository, uid: &str) -> String {
     let key_id = get_locked_key_id(repo, uid);
-    if !key_id.is_none() {
+    if key_id.is_none() {
         if gpg::has_key(uid) {
             let new_key_id = gpg::get_key_id(uid);
             write_lock_file(repo, uid, &new_key_id);
+            return new_key_id;
         } else {
             error_out(&format!("Unable to find key for user: {}", uid));
         }
@@ -24,7 +26,15 @@ pub fn resolve_name(repo: &Repository, uid: &str) -> String {
         return key_id_str;
     }
 
+    if get_saved_key(repo, &key_id_str).is_some() {
+        return key_id_str;
+    }
+
     error_out(&format!("Unknown key id: {}, for user: {}", key_id_str, uid))
+}
+
+pub fn set_key(repo: &Repository, uid: &str, pub_key: &str) {
+    save_key(repo, pub_key, uid);
 }
 
 fn write_lock_file(repo: &Repository, uid: &str, key_id: &str) {
@@ -50,4 +60,34 @@ fn get_lock_dir(repo: &Repository) -> PathBuf {
         fs::create_dir_all(&lock_path).unwrap();
     }
     return lock_path;
+}
+
+fn get_saved_key(repo: &Repository, key_id: &str) -> Option<String> {
+    let key_path = 
+        git_utils::get_credentials_dir(repo)
+        .join(KEY_FOLDER_NAME)
+        .join(PUBLIC_KEY_FOLDER_NAME)
+        .join(key_id);
+    if !key_path.exists() || !key_path.is_file() {
+        return None;
+    }
+
+    let contents = fs::read_to_string(key_path);
+    if contents.is_err() {
+        return None;
+    }
+
+    return Some(gpg::import_key(&contents.unwrap()));
+}
+
+fn save_key(repo: &Repository, pub_key: &str, uid: &str) {
+    let key_id = gpg::import_key(pub_key);
+    let path = git_utils::get_credentials_dir(repo)
+        .join(KEY_FOLDER_NAME)
+        .join(PUBLIC_KEY_FOLDER_NAME);
+    fs::create_dir_all(path.clone()).unwrap();
+
+    let key_path = path.join(key_id.clone());
+    fs::write(key_path, pub_key).unwrap();
+    write_lock_file(repo, uid, &key_id);
 }

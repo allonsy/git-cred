@@ -5,6 +5,7 @@ use std::path::Path;
 use std::fs::File;
 use std::fs;
 use std::io::prelude::Read;
+use resolver;
 
 pub fn encrypt_file(repo: &Repository, path: &Path, fname: &str) {
     let mut contents = String::new();
@@ -68,7 +69,12 @@ fn get_gpgs_for_file(repo: &Repository, sub_path: &Path) -> Vec<String> {
     }
     let sub_paths = sub_path.to_str().unwrap().split(std::path::MAIN_SEPARATOR).collect();
     let gpgs = get_gpgs_for_file_recursive(&cred_path, sub_paths, gpgs.unwrap());
-    gpgs
+    
+    let mut resolved_gpgs = Vec::new();
+    for gpg in &gpgs {
+        resolved_gpgs.push(resolver::resolve_name(repo, gpg));
+    }
+    return resolved_gpgs;
 }
 
 fn get_gpgs_for_file_recursive(path: &Path, sub_path: Vec<&str>, gpgs: Vec<String>) -> Vec<String> {
