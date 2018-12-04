@@ -1,5 +1,6 @@
 extern crate git2;
 extern crate reqwest;
+extern crate serde_json;
 
 mod git_utils;
 mod git_config;
@@ -9,6 +10,7 @@ mod encrypt;
 mod decrypt;
 mod resolver;
 mod util;
+mod github;
 
 use git2::Repository;
 use std::path::Path;
@@ -111,13 +113,10 @@ fn handle_set_user_key(repo: &Repository, args: &[String]) {
     let uid = &args[0];
 
     if args.len() == 1 {
-        if gpg::has_key(&uid) {
-            let pub_key = gpg::export_key(uid);
-            resolver::set_key(repo, uid, &pub_key.unwrap());
-            return;
-        } else {
-            error_out(&format!("Unable to find key for user: {}", uid));
-        }
+        let key_id = resolver::resolve_name(repo, uid);
+        let pub_key = gpg::export_key(&key_id);
+        resolver::set_key(repo, uid, &pub_key.unwrap());
+        return;
     }
 
     let filename = &args[1];

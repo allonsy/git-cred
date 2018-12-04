@@ -3,7 +3,6 @@ use std::process::Command;
 use std::process::Stdio;
 use std::io;
 use std::io::Write;
-use std::io::Read;
 use command;
 use util;
 
@@ -20,27 +19,9 @@ pub fn decrypt<P: AsRef<Path>>(path: P) -> io::Result<String> {
     return Ok(String::from_utf8(output_unwrapped.stdout).unwrap());
 }
 
-pub fn encrypt<P: AsRef<Path>>(path: P, recipients: &Vec<&str>) -> io::Result<()> {
-    let mut args = vec!["--encrypt", "--batch", "--yes"];
-    for recipient in recipients {
-        args.push("--recipient");
-        args.push(recipient);
-    }
-    args.push(path.as_ref().to_str().unwrap());
-    let output = command::run_command("gpg", args);
-    if output.is_err() {
-        return Err(output.err().unwrap());
-    }
-    if !output.unwrap().status.success() {
-        return Err(io::Error::new(io::ErrorKind::Other, "Encryption failed"));
-    }
-
-    return Ok(());
-}
-
 pub fn encrypt_string<P: AsRef<Path>>(path: P, contents: String, recipients: &Vec<&str>) -> io::Result<()> {
     let path_str = path.as_ref().to_str().unwrap();
-    let mut args = vec!["--encrypt", "--batch", "--yes", "--output", path_str];
+    let mut args = vec!["--encrypt", "--trust-model", "always", "--batch", "--yes", "--output", path_str];
 
     for recipient in recipients {
         args.push("--recipient");
@@ -83,8 +64,12 @@ pub fn get_key_id(id: &str) -> String {
     output_string.lines().nth(1).unwrap().trim().to_string()
 }
 
-// returns the key-id of the imported key
 pub fn import_key(key_contents: &str) -> String {
+    return import_key_bytes(&key_contents.to_string().into_bytes());
+}
+
+// returns the key-id of the imported key
+pub fn import_key_bytes(key_contents: &Vec<u8>) -> String {
     let mut output = Command::new("gpg")
         .args(vec!["--import"])
         .stdin(Stdio::piped())
@@ -93,11 +78,13 @@ pub fn import_key(key_contents: &str) -> String {
         .spawn()
         .expect("Unable to call gpg");
     
-    output.stdin.as_mut().unwrap().write_all(&key_contents.to_string().into_bytes()).unwrap();
+    output.stdin.as_mut().unwrap().write_all(key_contents).unwrap();
     
 
     let exit_cond = output.wait_with_output().unwrap();
     if !exit_cond.status.success() {
+        let output_str = String::from_utf8(exit_cond.stderr).unwrap();
+        println!("error is: {}", output_str);
         util::error_out("Unable to import key!");
     }
 
