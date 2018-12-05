@@ -7,6 +7,13 @@ Simple Encrypted git credential management
 * Allows flexible user management
 * Subfolders allow granular control over access controls to secrets
 * Automatically looks up keys in github for easy key sharing
+* Minimal dependencies (git + gpg)
+
+## Building and Running
+* Make sure you have git and gpg installed
+* Make sure you have rust + cargo installed (rustup in recommended)
+* clone this repo
+* Then, run `cargo install`. Make sure to have `~/.cargo/bin` on your PATH.
 
 ## Example Workflow
 Let's say I'm in my git repo and I want to create a store:
