@@ -33,6 +33,7 @@ pub fn encrypt_string(repo: &Repository, path: &Path, contents: String) {
 }
 
 pub fn reencrypt_file(repo: &Repository, path: &Path) {
+    println!("reencrypting file: {}", path.display());
     let gpgs = get_gpgs_for_file(repo, path);
     let path_to_encrypted_file = git_utils::get_credentials_dir(repo).join(path);
 

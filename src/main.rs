@@ -154,10 +154,10 @@ fn print_help(args: &[String]) {
 
     let help_str = match subcommand.as_ref() {
         "init" => {
-            "git cred init help
+"git cred init help
 Init a credential store or subfolder within the store
 
-usage: git cred init [-f folder_name] [gpg_ids...]
+usage: git cred init [-f <folder_name>] [<gpg_id>...]
     -f folder_name: instead of intializing the root folder of the credential store,
                     intialize a subfolder.
     
@@ -179,10 +179,10 @@ Examples:
 "
         }
         "encrypt" => {
-            "git cred encrypt help
+"git cred encrypt help
 Encrypt a file or string in the store
 
-usage: git cred encrypt path_to_encrypt (-f file_name | string_to_encrypt)
+usage: git cred encrypt <path_to_encrypt> (-f <file_name> | <string_to_encrypt>)
     path_to_encrypt:    the location in the credential store you want to encrypt to
                         e.g. /foo/bar
     -f file_name:       you may provide a file that will be encrypted via this flag
@@ -196,18 +196,18 @@ Examples:
     git cred encrypt foo -f secret.txt"
         }
         "decrypt" => {
-            "git cred decrypt help
+"git cred decrypt help
 Decrypt a file in the store
 
-usage: git cred decrypt file_path
+usage: git cred decrypt <file_path>
     file_path:  the file path to decrypt. The decrypted string will be output to standard out
 
 Examples:
     git cred decrypt foo
-    git cred decypt foo/bar"
+    git cred decrypt foo/bar"
         }
         "reencrypt" => {
-            "git cred reencrypt help
+"git cred reencrypt help
 Reencrypt your credential store based on the gpg ids already present in the store.
 To reencrypt with different gpg ids, use 'git cred init' instead.
 
@@ -220,7 +220,7 @@ Examples:
 "git cred save-key
 Store a public key from your gpg keyring/github into the repo
 
-usage: git cred save-key (uid) [keyfile]
+usage: git cred save-key <uid> [keyfile]
     uid:        Either a github username, email, or gpg key id
                 The key for that uid will be looked up and the public key will
                 be inserted into the repo for other users to encrypt with
