@@ -36,7 +36,7 @@ pub fn resolve_name(repo: &Repository, uid: &str) -> String {
     }
 
     if get_saved_key(repo, &key_id_str).is_some() {
-        println!("Found key for user: {} locally", uid);
+        println!("Found key for user: {} in repo", uid);
         return key_id_str;
     }
 
